@@ -127,7 +127,7 @@ impl HSV {
     }
 }
 
-pub fn SpeciesToRGB(species: Species, ra: u8, rb:u8) -> RGB {
+pub fn species_to_rgb(species: Species, ra: u8, rb:u8) -> RGB {
     let mut hue: f32 = 0.0;
     let mut saturation: f32 = 0.6;
     let mut lightness: f32 = 0.3 + (ra as f32/255.0) * 0.5;
@@ -216,13 +216,13 @@ pub fn SpeciesToRGB(species: Species, ra: u8, rb:u8) -> RGB {
 
 #[cfg(test)]
 mod tests {
-    use super::SpeciesToRGB;
+    use super::species_to_rgb;
     use super::HSV;
     use crate::species::Species;
 
     #[test]
     fn test_color() {
-        let rgbcolor = SpeciesToRGB(Species::Empty, 0, 0);
+        let rgbcolor = species_to_rgb(Species::Empty, 0, 0);
         println!("RGB {:?} {:?} {:?}", rgbcolor.r, rgbcolor.g, rgbcolor.b);
     }
 }
@@ -305,10 +305,9 @@ impl crate::Game for MyGame {
             x += 50 + api::rnd_range(0, 10);
         }
         
-        //universe.paint(100, 100, 1, Species::Sand);
-
+        // Draw the menus
         let mut widgets = Vec::new();
-        //widgets.push(Widget::new(Species::Sand, "Sand".to_string(), width as u32 + 2, 0, 1, false));
+
         widgets.push(Widget::new(Species::Water, "Water".to_string(), 1, width as u32 + 2, 0, 2, false));
         widgets.push(Widget::new(Species::Fire, "Fire".to_string(), 2, width as u32 + 2, 8, 2, false));
         widgets.push(Widget::new(Species::Lava, "Lava".to_string(), 3, width as u32 + 2, 16, 2, false));
@@ -323,6 +322,11 @@ impl crate::Game for MyGame {
         widgets.push(Widget::new(Species::Mite, "Mite".to_string(), 12, width as u32 + 2, 88, 2, false));
         widgets.push(Widget::new(Species::Gas, "Gas".to_string(), 13, width as u32 + 2, 96, 2, false));
         widgets.push(Widget::new(Species::Ice, "Ice".to_string(), 14, width as u32 + 2, 104, 2, false));
+
+        // Cloner
+        // Dust
+        // Fungus
+        // Empty
 
         Self {
             universe: universe,
@@ -361,7 +365,7 @@ impl crate::Game for MyGame {
         for x in 0..self.width {
             for y in 0..self.height {
                 let cell = self.universe.get_cell(x, y);
-                let rgbcolor = SpeciesToRGB(cell.species, cell.ra, cell.rb);
+                let rgbcolor = species_to_rgb(cell.species, cell.ra, cell.rb);
                 api::pset_rgba(x, y, (rgbcolor.r * 255.0) as u8, (rgbcolor.g * 255.0) as u8, (rgbcolor.b *255.) as u8, 0xFF);
             }
         }

@@ -1,5 +1,5 @@
 # Sable
-Sable, Sand, Zobel for Pikuseru Console
+Sable, Sand, Zobel for [Pikuseru Console](https://github.com/PikuseruConsole/pikuseru-console)
 
 Base code is from https://github.com/MaxBittker/sandspiel
 

@@ -9,4 +9,4 @@ crate-type = ["cdylib"]
 
 # Feel free to add as many dependencies as you like
 [dependencies]
-pikuseru_rs = "*"
+pikuseru_rs = { git = "https://github.com/PikuseruConsole/pikuseru-rs.git", version = "*", default-features = false }

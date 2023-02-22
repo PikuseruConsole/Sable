@@ -20,7 +20,6 @@ pub enum Species {
     Wood = 7,
     Lava = 8,
     Ice = 9,
-    // Sink = 10,
     Plant = 11,
     Acid = 12,
     Stone = 13,
@@ -30,7 +29,6 @@ pub enum Species {
     Rocket = 17,
     Fungus = 18,
     Seed = 19,
-    // X = 21,
 }
 
 
@@ -78,16 +76,12 @@ impl Species {
             Species::Wood => update_wood(cell, api),
             Species::Lava => update_lava(cell, api),
             Species::Ice => update_ice(cell, api),
-            // Species::Snow => update_ice(cell, api),
-            //lightning
-            // Species::Sink => update_sink(cell, api),
             Species::Plant => update_plant(cell, api),
             Species::Acid => update_acid(cell, api),
             Species::Mite => update_mite(cell, api),
             Species::Oil => update_oil(cell, api),
             Species::Fungus => update_fungus(cell, api),
             Species::Seed => update_seed(cell, api),
-            // Species::X => update_x(cell, api),
         }
     }
 }
@@ -397,17 +391,24 @@ pub fn update_gas(cell: Cell, mut api: SandApi) {
     let (dx, dy) = api.rand_vec();
 
     let nbr = api.get(dx, dy);
-    // api.set_fluid(Wind {
-    //     dx: 0,
-    //     dy: 0,
-    //     pressure: 5,
-    //     density: 0,
-    // });
+    
     if cell.rb == 0 {
         api.set(0, 0, Cell { rb: 5, ..cell });
     }
 
-    if nbr.species == Species::Empty {
+    if nbr.species == Species::Ice {
+        // Freeze on contact with ice. This simulates diffusion-limited aggregation.
+        // https://en.wikipedia.org/wiki/Diffusion-limited_aggregation
+        api.set(
+            0,
+            0,
+            Cell {
+                species: Species::Ice,
+                clock: 0,
+                ..cell
+            },
+        );
+    } else if nbr.species == Species::Empty {
         if cell.rb < 3 {
             //single molecule
             api.set(0, 0, EMPTY_CELL);
@@ -778,6 +779,7 @@ pub fn update_wood(cell: Cell, mut api: SandApi) {
         );
     }
 }
+
 pub fn update_ice(cell: Cell, mut api: SandApi) {
     let (dx, dy) = api.rand_vec();
 

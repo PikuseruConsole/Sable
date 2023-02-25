@@ -138,15 +138,29 @@ pub fn species_to_rgb(species: Species, ra: u8, rb:u8) -> RGB {
             saturation = 0.0;
             lightness = 0.18;
         }
+        Species::Cloner => {
+            hue = 0.9;
+            saturation = 0.3;
+        }
         Species::Acid => {
             hue = 0.18;
             saturation = 0.9;
             lightness = 0.8 + (ra as f32 / 255.0) * 0.2;// + noise * 0.05;
         }
+        Species::Dust => {
+            hue = (ra as f32 / 255.0) * 2.0;// + t * .0008;
+            saturation = 0.4;
+            lightness = 0.8;
+        }
         Species::Fire => {  
             hue = (ra as f32 / 255.0) * 0.1;
             saturation = 0.7;
             lightness = 0.7 + ((ra as f32 / 255.0) * 0.3); // + ((noise + 0.8) * 0.5);
+        }
+        Species::Fungus => {
+            hue = ((ra as f32 / 255.0) * 0.15) - 0.1;
+            saturation = ((ra as f32 / 255.0) * 0.8) - 0.05;
+            lightness = 1.5 - ((ra as f32 / 255.0) * 0.2);
         }
         Species::Gas => {
             hue = 0.0;
@@ -255,12 +269,15 @@ impl Widget {
             if mouse_x >= self.x && mouse_x <= self.x+8 {
                 if mouse_y >= self.y && mouse_y <= self.y+8 {
                     self.active = true;
-                    return true;
+                } else {
+                    self.active = false;
                 }
+            } else {
+                self.active = false;
             }
-            self.active = false;
         }
-        return false;
+
+        self.active
     }
 
     pub fn draw(&mut self) {
@@ -271,16 +288,56 @@ impl Widget {
         }
 
         api::spr(self.idx, self.x as i32, self.y as i32, 1, 1, false, false, 0.0, 1.0, false);
-
-        //
-        //api::rectfill(self.x, self.y, self.x + 10, self.y+5, self.col);
     }
 }
+
+pub struct PaintWidget {
+    idx: u32,
+    x: u32,
+    y: u32,
+    active: bool,
+}
+
+impl PaintWidget {
+    pub fn new(idx: u32, x: u32, y: u32, active: bool) -> Self {
+        Self {
+            idx: idx,
+            x: x,
+            y: y,
+            active: active
+        }
+    }
+
+    pub fn update(&mut self, left_click: bool, mouse_x: u32, mouse_y: u32) -> bool {
+        if left_click {
+            if mouse_x >= self.x && mouse_x <= self.x+8 {
+                if mouse_y >= self.y && mouse_y <= self.y+8 {
+                    self.active = true;
+                } else {
+                    self.active = false;
+                }
+            } else {
+                self.active = false;
+            }
+        }
+
+        self.active
+    }
+
+    pub fn draw(&mut self) {
+        if self.active {
+            api::rectfill(self.x as i32, self.y as i32, self.x as i32 +8, self.y as i32 + 8, 7);
+        }
+        api::spr(self.idx, self.x as i32, self.y as i32, 1, 1, false, false, 0.0, 1.0, false);
+    }
+}
+
 pub struct MyGame {
     universe: Universe,
     width: i32,
     height: i32,
-    widgets: Vec<Widget>,
+    species_widgets: Vec<Widget>,
+    raz_widget: PaintWidget,
     current_species: Species,
 }
 
@@ -306,40 +363,45 @@ impl crate::Game for MyGame {
         }
         
         // Draw the menus
-        let mut widgets = Vec::new();
+        let mut species_widgets = Vec::new();
 
-        widgets.push(Widget::new(Species::Water, "Water".to_string(), 1, width as u32 + 2, 0, 2, false));
-        widgets.push(Widget::new(Species::Fire, "Fire".to_string(), 2, width as u32 + 2, 8, 2, false));
-        widgets.push(Widget::new(Species::Lava, "Lava".to_string(), 3, width as u32 + 2, 16, 2, false));
-        widgets.push(Widget::new(Species::Seed, "Seed".to_string(), 4, width as u32 + 2, 24, 2, false));
-        widgets.push(Widget::new(Species::Sand, "Sand".to_string(), 5, width as u32 + 2, 32, 2, false));
-        widgets.push(Widget::new(Species::Plant, "Plant".to_string(), 6, width as u32 + 2, 40, 2, false));
-        widgets.push(Widget::new(Species::Rocket, "Rocket".to_string(), 7, width as u32 + 2, 48, 2, false));
-        widgets.push(Widget::new(Species::Oil, "Oil".to_string(), 8, width as u32 + 2,56, 2, false));
-        widgets.push(Widget::new(Species::Acid, "Acid".to_string(), 9, width as u32 + 2,64, 2, false));
-        widgets.push(Widget::new(Species::Stone, "Stone".to_string(), 10, width as u32 + 2, 72, 2, false));
-        widgets.push(Widget::new(Species::Wood, "Wood".to_string(), 11, width as u32 + 2, 80, 2, false));
-        widgets.push(Widget::new(Species::Mite, "Mite".to_string(), 12, width as u32 + 2, 88, 2, false));
-        widgets.push(Widget::new(Species::Gas, "Gas".to_string(), 13, width as u32 + 2, 96, 2, false));
-        widgets.push(Widget::new(Species::Ice, "Ice".to_string(), 14, width as u32 + 2, 104, 2, false));
-
-        // Cloner
-        // Dust
-        // Fungus
-        // Empty
+        species_widgets.push(Widget::new(Species::Water, "Water".to_string(), 1, width as u32 + 2, 0, 2, false));
+        species_widgets.push(Widget::new(Species::Fire, "Fire".to_string(), 2, width as u32 + 2, 8, 2, false));
+        species_widgets.push(Widget::new(Species::Lava, "Lava".to_string(), 3, width as u32 + 2, 16, 2, false));
+        species_widgets.push(Widget::new(Species::Seed, "Seed".to_string(), 4, width as u32 + 2, 24, 2, false));
+        species_widgets.push(Widget::new(Species::Sand, "Sand".to_string(), 5, width as u32 + 2, 32, 2, false));
+        species_widgets.push(Widget::new(Species::Plant, "Plant".to_string(), 6, width as u32 + 2, 40, 2, false));
+        species_widgets.push(Widget::new(Species::Rocket, "Rocket".to_string(), 7, width as u32 + 2, 48, 2, false));
+        species_widgets.push(Widget::new(Species::Oil, "Oil".to_string(), 8, width as u32 + 2,56, 2, false));
+        species_widgets.push(Widget::new(Species::Acid, "Acid".to_string(), 9, width as u32 + 2,64, 2, false));
+        species_widgets.push(Widget::new(Species::Stone, "Stone".to_string(), 10, width as u32 + 2, 72, 2, false));
+        species_widgets.push(Widget::new(Species::Wood, "Wood".to_string(), 11, width as u32 + 2, 80, 2, false));
+        species_widgets.push(Widget::new(Species::Mite, "Mite".to_string(), 12, width as u32 + 2, 88, 2, false));
+        species_widgets.push(Widget::new(Species::Gas, "Gas".to_string(), 13, width as u32 + 2, 96, 2, false));
+        species_widgets.push(Widget::new(Species::Ice, "Ice".to_string(), 14, width as u32 + 2, 104, 2, false));
+        species_widgets.push(Widget::new(Species::Cloner, "Cloner".to_string(), 15, width as u32 + 2, 112, 2, false));
+        species_widgets.push(Widget::new(Species::Dust, "Dust".to_string(), 16, width as u32 + 2, 120, 2, false));
+        species_widgets.push(Widget::new(Species::Fungus, "Fungus".to_string(), 17, width as u32 + 2, 128, 2, false));
+        species_widgets.push(Widget::new(Species::Empty, "Empty".to_string(), 18, width as u32 + 2, 136, 2, false));
 
         Self {
             universe: universe,
             width: width,
             height: height,
-            widgets: widgets,
+            species_widgets: species_widgets,
+            raz_widget: PaintWidget::new(36, width as u32 + 2, 160, false),
             current_species: Species::Sand,
         }
     }
 
     /// Handle all of your game state logic here
     fn update(&mut self) {
-        for widget in self.widgets.iter_mut() {
+        if self.raz_widget.update(api::mouse_left_state(0), api::mouse_x(), api::mouse_y()) {
+            self.universe.reset();
+        }
+
+
+        for widget in self.species_widgets.iter_mut() {
             if widget.update( api::mouse_left_state(0), api::mouse_x(), api::mouse_y()) {
                 self.current_species = widget.species;
             }
@@ -357,9 +419,10 @@ impl crate::Game for MyGame {
         api::cls(0);
 
         // Draw menu
-        for widget in self.widgets.iter_mut() {
+        for widget in self.species_widgets.iter_mut() {
             widget.draw();
         }
+        self.raz_widget.draw();
 
         // Draw all cells !
         for x in 0..self.width {

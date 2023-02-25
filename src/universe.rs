@@ -166,16 +166,12 @@ impl Universe {
         }
     }
     pub fn tick(&mut self) {
-        // let mut next = self.cells.clone();
-        // let dx = self.winds[(self.width * self.height / 2) as usize].dx;
-        // let js: JsValue = (dx).into();
-        // console::log_2(&"dx: ".into(), &js);
-
+/*
         for x in 0..self.width {
             for y in 0..self.height {
                 let cell = self.get_cell(x, y);
                 let wind = self.get_wind(x, y);
-                /*Universe::blow_wind(
+                Universe::blow_wind(
                     cell,
                     wind,
                     SandApi {
@@ -183,9 +179,11 @@ impl Universe {
                         x,
                         y,
                     },
-                )*/
+                )
             }
         }
+*/
+
         self.generation = self.generation.wrapping_add(1);
         for x in 0..self.width {
             let scanx = if self.generation % 2 == 0 {
